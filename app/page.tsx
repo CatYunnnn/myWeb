@@ -8,9 +8,9 @@ const techCards = [
     accent: "amber",
   },
   {
-    title: "Cross-Platform",
-    subtitle: "Flutter (Dart)",
-    description: "單一程式碼庫同時交付 iOS / Android / Web。",
+    title: "AI Workflows",
+    subtitle: "Stitch, Antigravity Agent",
+    description: "運用 Stitch 進行設計，並結合 Antigravity 與 UI-UX-PRO-MAX 工作流及 Frontend Design 打造頂級體驗。",
     accent: "yellow",
   },
   {
@@ -29,7 +29,7 @@ const techCards = [
 
 const quickCards = [
   { title: "Frontend", subtitle: "React, Next.js, Tailwind CSS" },
-  { title: "Cross-Platform", subtitle: "Flutter (Dart)" },
+  { title: "AI Workflows", subtitle: "Stitch & Antigravity" },
   { title: "Mobile", subtitle: "Kotlin, Jetpack Compose" },
   { title: "Tools", subtitle: "Git, Docker, Figma" },
 ];
