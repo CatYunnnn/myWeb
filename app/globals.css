@@ -1,39 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  /* base colors */
-  --color-bg: #f4f3f1;
-  --color-text: #1c1c1c;
-  --color-muted: #6b6b6b;
-  --color-accent: #9c7a2f;
-
-  /* surface */
-  --color-surface: #ffffff;
-  --color-border: #e5e5e5;
+  /* Soft Editorial Light Mode */
+  --bg: #f8f7f5;
+  --fg: #111827;
+  --accent: #d97706; /* amber 600 */
+  --accent-hover: #b45309; 
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --muted: #9ca3af;
+  
+  /* Light mode specific gradients/shadows */
+  --glow-accent: rgba(217, 119, 6, 0.2);
+  --mesh-1: rgba(217, 119, 6, 0.05); /* very subtle amber */
+  --mesh-2: rgba(59, 130, 246, 0.03); /* subtle blue */
 }
 
 .dark {
-  --color-bg: #1e2327;
-  --color-text: #eaeaea;
-  --color-muted: #a0a0a0;
-  --color-accent: #c9a24d;
+  /* Neon Pulse Dark Mode */
+  --bg: #0c0f14;
+  --fg: #f1f5f9;
+  --accent: #fcd34d; /* amber 300 */
+  --accent-hover: #fce68a;
+  --card: #0f141d;
+  --border: #1f2a36;
+  --muted: #64748b;
 
-  --color-surface: #262b30;
-  --color-border: #333840;
+  /* Dark mode specific gradients/glows */
+  --glow-accent: rgba(252, 211, 77, 0.5);
+  --mesh-1: rgba(86, 142, 255, 0.25);
+  --mesh-2: rgba(255, 193, 94, 0.18);
 }
 
 @theme inline {
-  --color-background: var(--color-bg);
-  --color-foreground: var(--color-text);
-  --color-muted: var(--color-muted);
-  --color-accent: var(--color-accent);
-  --color-surface: var(--color-surface);
-  --color-border: var(--color-border);
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
 }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }

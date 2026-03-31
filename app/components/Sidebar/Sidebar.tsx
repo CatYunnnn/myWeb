@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 
 const links = [
   { label: "Home", href: "/" },
@@ -21,9 +22,9 @@ export const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <aside className="relative flex w-56 shrink-0 flex-col justify-between border-r border-[#1c2430] bg-[#0f1319] px-6 py-10 shadow-[8px_0_30px_-18px_rgba(0,0,0,0.7)]">
+    <aside className="sticky top-0 flex h-screen w-56 shrink-0 flex-col justify-between border-r border-border bg-card px-6 py-10 shadow-[8px_0_30px_-18px_rgba(0,0,0,0.05)] transition-colors duration-500 dark:shadow-[8px_0_30px_-18px_rgba(0,0,0,0.7)]">
       <div className="space-y-10">
-        <div className="text-3xl font-black tracking-tight text-amber-300">
+        <div className="text-3xl font-black tracking-tight text-accent transition-colors duration-500">
           Y.L
         </div>
 
@@ -38,20 +39,20 @@ export const Sidebar = () => {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group relative flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium text-slate-300 transition"
+                className="group relative flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium text-muted transition hover:text-foreground"
               >
                 <span
                   className={`absolute left-[-14px] h-8 w-1 rounded-full transition-all ${
                     active
-                      ? "bg-amber-300 shadow-[0_0_12px_3px_rgba(255,193,94,0.5)]"
-                      : "bg-transparent group-hover:bg-slate-500/60"
+                      ? "bg-accent shadow-[0_0_12px_3px_var(--glow-accent)]"
+                      : "bg-transparent group-hover:bg-muted/40"
                   }`}
                 />
                 <span
                   className={`${
                     active
-                      ? "text-amber-200"
-                      : "text-slate-400 group-hover:text-white"
+                      ? "text-accent"
+                      : "text-muted group-hover:text-foreground"
                   }`}
                 >
                   {item.label}
@@ -62,16 +63,19 @@ export const Sidebar = () => {
         </nav>
       </div>
 
-      <div className="flex items-center gap-3 text-slate-400">
-        {socials.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1f2a36] bg-[#121821] text-xs uppercase tracking-wide transition hover:border-amber-300 hover:text-amber-200 hover:shadow-[0_0_15px_-4px_rgba(255,193,94,0.5)]"
-          >
-            {item.abbr}
-          </Link>
-        ))}
+      <div className="flex items-center gap-2">
+        <div className="flex flex-1 items-center gap-2 text-muted">
+          {socials.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-xs uppercase tracking-wide transition-all hover:border-accent hover:text-accent hover:shadow-[0_0_15px_-4px_var(--glow-accent)]"
+            >
+              {item.abbr}
+            </Link>
+          ))}
+        </div>
+        <ThemeToggle />
       </div>
     </aside>
   );
