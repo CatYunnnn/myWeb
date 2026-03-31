@@ -91,7 +91,7 @@ export default function Home() {
                       Flutter
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <Link href="/projects" className="cursor-pointer rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white dark:text-slate-950 shadow-[0_10px_30px_-12px_var(--glow-accent)] transition hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_12px_40px_-14px_var(--glow-accent)]">
                       View Work
                     </Link>
@@ -146,6 +146,38 @@ export default function Home() {
           </section>
 
           <aside className="space-y-6">
+            {/* Interactive Game Card */}
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] transition-all duration-500 hover:border-accent hover:shadow-[0_20px_50px_-20px_var(--glow-accent)] dark:shadow-[0_20px_55px_-38px_rgba(0,0,0,0.8)] cursor-pointer">
+              <Link href="/game" className="absolute inset-0 z-10" aria-label="Play Mini Game" />
+              
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle_at_center,var(--glow-accent),transparent_70%)] opacity-20 transition-all duration-500 group-hover:opacity-60 group-hover:scale-150" />
+              
+              <div className="relative flex items-center justify-between gap-4">
+                 <div className="space-y-1">
+                   <div className="flex items-center gap-2 mb-2">
+                     <span className="flex h-2 w-2 relative">
+                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                       <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+                     </span>
+                     <span className="text-xs uppercase tracking-[0.3em] text-accent font-semibold">Playground</span>
+                   </div>
+                   <h3 className="text-lg font-bold text-foreground group-hover:text-accent transition-colors">Mini Game Space</h3>
+                   <p className="text-sm text-muted">Take a break and test your skills.</p>
+                 </div>
+                 
+                 <div className="flex shrink-0 h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent ring-1 ring-accent/20 transition-all duration-500 group-hover:bg-accent group-hover:text-white dark:group-hover:text-slate-950 group-hover:scale-110 group-hover:-rotate-12">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                     <rect x="2" y="6" width="20" height="12" rx="2" />
+                     <path d="M6 12h4" />
+                     <path d="M8 10v4" />
+                     <path d="M15 13h.01" />
+                     <path d="M18 11h.01" />
+                   </svg>
+                 </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
               {quickCards.map((card) => (
                 <div

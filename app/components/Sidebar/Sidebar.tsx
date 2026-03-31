@@ -8,7 +8,6 @@ import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 const links = [
   { label: "Home", href: "/" },
   { label: "Projects", href: "/projects" },
-  { label: "Articles", href: "/articles" },
   { label: "About", href: "/about" },
 ];
 
@@ -63,6 +62,7 @@ export const Sidebar = () => {
         </nav>
       </div>
 
+      {/* footer */}
       <div className="flex items-center gap-2">
         <div className="flex flex-1 items-center gap-2 text-muted">
           {socials.map((item) => (
