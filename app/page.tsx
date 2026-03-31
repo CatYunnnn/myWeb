@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const techCards = [
   {
     title: "Frontend",
@@ -90,10 +92,10 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-4">
-                    <button className="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white dark:text-slate-950 shadow-[0_10px_30px_-12px_var(--glow-accent)] transition hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_12px_40px_-14px_var(--glow-accent)]">
+                    <Link href="/projects" className="cursor-pointer rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white dark:text-slate-950 shadow-[0_10px_30px_-12px_var(--glow-accent)] transition hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_12px_40px_-14px_var(--glow-accent)]">
                       View Work
-                    </button>
-                    <button className="rounded-full border border-border px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent hover:text-accent bg-background/50 backdrop-blur">
+                    </Link>
+                    <button className="cursor-pointer rounded-full border border-border px-5 py-2 text-sm font-semibold text-foreground transition hover:border-accent hover:text-accent bg-background/50 backdrop-blur">
                       Contact
                     </button>
                   </div>
