@@ -36,9 +36,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen bg-background text-foreground transition-colors duration-500">
+          <div className="flex h-[100dvh] w-[100vw] overflow-hidden bg-background text-foreground transition-colors duration-500">
             <Sidebar />
-            <div className="flex-1">{children}</div>
+            <div className="flex-1 overflow-y-auto overflow-x-hidden relative">{children}</div>
           </div>
         </ThemeProvider>
       </body>
