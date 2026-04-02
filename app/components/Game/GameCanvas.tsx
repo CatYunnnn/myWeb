@@ -8,6 +8,7 @@ export function GameCanvas() {
   const engineRef = useRef<GameEngine | null>(null);
   const [isReady, setIsReady] = useState(false);
   const isPaused = useGameStore(state => state.isPaused);
+  const isGameOver = useGameStore(state => state.isGameOver);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -33,15 +34,17 @@ export function GameCanvas() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 監聽 React 傳來的暫停狀態來控制底層引擎
+  // 監聽 React 傳來的暫停 / 遊戲結束狀態來控制底層引擎
   useEffect(() => {
     if (!engineRef.current || !isReady) return;
-    if (isPaused) {
+    if (isPaused || isGameOver) {
       engineRef.current.stop();
     } else {
+      // 如果從 Game Over 回來，先重置引擎
+      engineRef.current.reset();
       engineRef.current.start();
     }
-  }, [isPaused, isReady]);
+  }, [isPaused, isGameOver, isReady]);
 
   return (
     <canvas 
