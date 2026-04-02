@@ -8,6 +8,8 @@ interface Enemy {
   speed: number;
   hp: number;
   maxHp: number;
+  type: 'normal' | 'elite';
+  fireTimer?: number;
 }
 
 interface Projectile {
@@ -18,7 +20,8 @@ interface Projectile {
   vx: number;
   vy: number;
   damage: number;
-  pierceLeft: number; // 剩餘穿透次數
+  pierceLeft?: number; // 剩餘穿透次數 (玩家專屬)
+  isEnemy?: boolean;   // 標記是否為敵方飛彈
 }
 
 // 這是純 JS 的邏輯層，不會被 React 的 render 週期影響
@@ -41,6 +44,7 @@ export class GameEngine {
   // 實體存放陣列
   private enemies: Enemy[] = [];
   private projectiles: Projectile[] = [];
+  private enemyProjectiles: Projectile[] = []; // 敵軍專用彈幕
 
   // 計時器
   private enemySpawnTimer: number = 0;
@@ -102,6 +106,7 @@ export class GameEngine {
     this.stop();
     this.enemies = [];
     this.projectiles = [];
+    this.enemyProjectiles = [];
     this.enemySpawnTimer = 0;
     this.fireTimer = 0;
     this.player.x = this.canvas.width / 2;
@@ -125,7 +130,7 @@ export class GameEngine {
     this.player.x += dx * weaponStats.lerpSpeed;
     this.player.y += dy * weaponStats.lerpSpeed;
 
-    // 2. 控制怪物生成頻率 (預設每秒 1 隻)
+    // 2. 控制怪物生成頻率
     this.enemySpawnTimer += deltaTime;
     if (this.enemySpawnTimer > 2000) {
       this.spawnEnemy();
@@ -139,7 +144,7 @@ export class GameEngine {
       this.fireTimer = 0;
     }
 
-    // 4. 更新子彈軌跡，並移除超出邊界的子彈
+    // 4A. 更新玩家子彈軌跡，並移除超出邊界的子彈
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       p.x += p.vx * (deltaTime / 16);
@@ -155,6 +160,36 @@ export class GameEngine {
       }
     }
 
+    // 4B. 更新敵方子彈軌跡與玩家碰撞判定
+    for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
+      const ep = this.enemyProjectiles[i];
+      ep.x += ep.vx * (deltaTime / 16);
+      ep.y += ep.vy * (deltaTime / 16);
+
+      // (A) 檢查有沒有擊中玩家
+      if (this.circleRectCollide(ep.x, ep.y, ep.radius, this.player.x - this.player.radius, this.player.y - this.player.radius, this.player.radius * 2, this.player.radius * 2)) {
+        useGameStore.getState().takeDamage(ep.damage); // 通常是 7.5
+        this.enemyProjectiles.splice(i, 1);
+        
+        // 血量歸零
+        if (useGameStore.getState().health <= 0) {
+          this.stop();
+          return;
+        }
+        continue;
+      }
+
+      // (B) 移除出界的敵軍子彈
+      if (
+        ep.x < 0 ||
+        ep.x > this.canvas.width ||
+        ep.y < 0 ||
+        ep.y > this.canvas.height
+      ) {
+        this.enemyProjectiles.splice(i, 1);
+      }
+    }
+
     // 5. 更新怪物路徑與碰撞處理
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const enemy = this.enemies[i];
@@ -166,6 +201,27 @@ export class GameEngine {
 
       enemy.x += Math.cos(angleToPlayer) * enemy.speed * (deltaTime / 16);
       enemy.y += Math.sin(angleToPlayer) * enemy.speed * (deltaTime / 16);
+
+      // (菁英怪專用) 射擊冷卻處理
+      if (enemy.type === 'elite' && enemy.fireTimer !== undefined) {
+        enemy.fireTimer += deltaTime;
+        // 菁英每 1500 毫秒射擊一次
+        if (enemy.fireTimer >= 1500) {
+          const aimAngle = angleToPlayer;
+          const bulletSpeed = 5; 
+          this.enemyProjectiles.push({
+            x: ex,
+            y: ey,
+            radius: 5,
+            color: '#f59e0b', // 橘黃色的菁英子彈
+            vx: Math.cos(aimAngle) * bulletSpeed,
+            vy: Math.sin(aimAngle) * bulletSpeed,
+            damage: 7.5, // 普通傷害5的1.5倍
+            isEnemy: true,
+          });
+          enemy.fireTimer = 0;
+        }
+      }
 
       // (A) 玩家是否被怪物撞到了? (Circle vs Rect)
       if (
@@ -179,7 +235,10 @@ export class GameEngine {
           enemy.size,
         )
       ) {
-        useGameStore.getState().takeDamage(5); // 扣 5Hp
+        // 菁英怪傷害1.5倍
+        const dmg = enemy.type === 'elite' ? 7.5 : 5;
+        useGameStore.getState().takeDamage(dmg); 
+        
         // 把怪物稍微彈開
         enemy.x -= Math.cos(angleToPlayer) * 40;
         enemy.y -= Math.sin(angleToPlayer) * 40;
@@ -191,7 +250,7 @@ export class GameEngine {
         }
       }
 
-      // (B) 怪物是否被任何子彈打中? (Circle 子彈 vs Rect 怪物)
+      // (B) 怪物是否被玩家子彈打中? (Circle 子彈 vs Rect 怪物)
       for (let j = this.projectiles.length - 1; j >= 0; j--) {
         const p = this.projectiles[j];
         if (
@@ -208,7 +267,7 @@ export class GameEngine {
           enemy.hp -= p.damage;
 
           // 穿透邏輯
-          if (p.pierceLeft > 0) {
+          if (p.pierceLeft !== undefined && p.pierceLeft > 0) {
             p.pierceLeft -= 1;
           } else {
             this.projectiles.splice(j, 1); // 子彈耗盡穿透次數後消失
@@ -216,8 +275,14 @@ export class GameEngine {
 
           if (enemy.hp <= 0) {
             this.enemies.splice(i, 1); // 怪物死亡
-            useGameStore.getState().addScore(10); // 拿 10 分
-            useGameStore.getState().addExp(15); // 拿 15 經驗值
+            
+            // 菁英怪掉落較多資源
+            const baseScore = 10;
+            const baseExp = 15;
+            const multiplier = enemy.type === 'elite' ? 2 : 1; // 菁英怪掉兩倍資源
+
+            useGameStore.getState().addScore(baseScore * multiplier); 
+            useGameStore.getState().addExp(baseExp * multiplier); 
             break; // 怪物死掉就不再檢測這隻怪身上其他的子彈了
           }
         }
@@ -248,12 +313,19 @@ export class GameEngine {
   // 怪物在一畫面四個邊緣以外隨機生成
   private spawnEnemy() {
     const level = useGameStore.getState().level;
-    const size = 20;
+    
+    // 生成菁英怪機率 (20%)，第一級先不出菁英怪防止新手被秒
+    const isElite = level > 1 && Math.random() < 0.2;
+    
+    // 怪物的血量隨等級難度成長
+    const baseHp = 20 + level * 1.5;
+    const enemyMaxHp = isElite ? baseHp * 1.5 : baseHp;
 
-    // 怪物的血量隨等級難度成長：基礎 20 + 每等級額外 3 點血
-    const enemyMaxHp = 20 + level * 1.5;
-    // 怪物速度隨等級提昇，防止火力輾壓
-    const baseSpeed = 1.3 + Math.random() * 0.5 + level * 0.05;
+    const size = isElite ? 28 : 20;
+    
+    // 怪物速度隨等級提昇 (菁英怪為了平衡設計為略慢一些)
+    let baseSpeed = 1.3 + Math.random() * 0.5 + level * 0.05;
+    if (isElite) baseSpeed *= 0.85;
 
     let x, y;
     if (Math.random() < 0.5) {
@@ -268,10 +340,12 @@ export class GameEngine {
       x,
       y,
       size,
-      color: "#94a3b8", // 暗色系灰色怪物方形
+      color: isElite ? "#f59e0b" : "#94a3b8", // 菁英帶有橘黃色
       speed: baseSpeed, 
       hp: enemyMaxHp,
       maxHp: enemyMaxHp,
+      type: isElite ? 'elite' : 'normal',
+      fireTimer: isElite ? 0 : undefined, // 菁英怪才有射擊冷卻計時器
     });
   }
 
@@ -330,36 +404,48 @@ export class GameEngine {
     for (const enemy of this.enemies) {
       // 怪物方形本體
       this.ctx.fillStyle = enemy.color;
-      this.ctx.shadowBlur = 10;
+      this.ctx.shadowBlur = enemy.type === 'elite' ? 15 : 10;
       this.ctx.shadowColor = enemy.color;
       this.ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
       this.ctx.shadowBlur = 0;
+      
+      // 菁英怪額外的光環
+      if (enemy.type === 'elite') {
+        this.ctx.strokeStyle = `rgba(245, 158, 11, 0.4)`;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(enemy.x - 4, enemy.y - 4, enemy.size + 8, enemy.size + 8);
+      }
 
-      // 怪物血條 — 只在受傷後才顯示
-      if (enemy.hp < enemy.maxHp) {
+      // 怪物血條 — 只在受傷後才顯示，或是菁英怪永遠顯示
+      if (enemy.hp < enemy.maxHp || enemy.type === 'elite') {
         const barWidth = enemy.size + 6;
-        const barHeight = 3;
+        const barHeight = 4;
         const barX = enemy.x - 3;
-        const barY = enemy.y - 8;
+        const barY = enemy.y - 12;
         const hpRatio = Math.max(0, enemy.hp / enemy.maxHp);
 
         // 血條底色（軌道）
         this.ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
         this.ctx.fillRect(barX, barY, barWidth, barHeight);
 
-        // 血條前景 — 根據血量百分比漸變色 (紅 → 橘)
-        const r = 255;
-        const g = Math.round(47 + 60 * (1 - hpRatio)); // 紅腐 → 橘
-        const b = Math.round(87 * hpRatio + 53 * (1 - hpRatio));
-        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        // 血條前景
+        if (enemy.type === 'elite') {
+           this.ctx.fillStyle = `rgba(245, 158, 11, 0.9)`; // 菁英橘色血條
+        } else {
+           const r = 255;
+           const g = Math.round(47 + 60 * (1 - hpRatio));
+           const b = Math.round(87 * hpRatio + 53 * (1 - hpRatio));
+           this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        }
+        
         this.ctx.shadowBlur = 6;
-        this.ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.7)`;
+        this.ctx.shadowColor = this.ctx.fillStyle;
         this.ctx.fillRect(barX, barY, barWidth * hpRatio, barHeight);
         this.ctx.shadowBlur = 0;
       }
     }
 
-    // 3. 畫出每一發子彈
+    // 3. 畫出每一發玩家子彈
     for (const p of this.projectiles) {
       this.ctx.beginPath();
       this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -371,7 +457,19 @@ export class GameEngine {
       this.ctx.shadowBlur = 0;
     }
 
-    // 4. 畫出玩家綠球
+    // 4. 畫出每一發敵軍子彈
+    for (const ep of this.enemyProjectiles) {
+      this.ctx.beginPath();
+      this.ctx.arc(ep.x, ep.y, ep.radius, 0, Math.PI * 2);
+      this.ctx.fillStyle = ep.color;
+      this.ctx.shadowBlur = 20;
+      this.ctx.shadowColor = ep.color; // 橘紅色光暈
+      this.ctx.fill();
+      this.ctx.closePath();
+      this.ctx.shadowBlur = 0;
+    }
+
+    // 5. 畫出玩家綠球
     this.ctx.beginPath();
     this.ctx.arc(
       this.player.x,
