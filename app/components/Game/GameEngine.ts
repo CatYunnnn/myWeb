@@ -7,6 +7,7 @@ interface Enemy {
   color: string;
   speed: number;
   hp: number;
+  maxHp: number;
 }
 
 interface Projectile {
@@ -172,7 +173,6 @@ export class GameEngine {
       }
 
       // (B) 怪物是否被任何子彈打中? (Circle 子彈 vs Rect 怪物)
-      let isEnemyDead = false;
       for (let j = this.projectiles.length - 1; j >= 0; j--) {
         const p = this.projectiles[j];
         if (this.circleRectCollide(p.x, p.y, p.radius, enemy.x, enemy.y, enemy.size, enemy.size)) {
@@ -180,9 +180,9 @@ export class GameEngine {
           this.projectiles.splice(j, 1); // 子彈命中後消失
           
           if (enemy.hp <= 0) {
-            isEnemyDead = true;
             this.enemies.splice(i, 1); // 怪物死亡
             useGameStore.getState().addScore(10); // 拿 10 分
+            useGameStore.getState().addExp(15);    // 拿 15 經驗值
             break; // 怪物死掉就不再檢測這隻怪身上其他的子彈了
           }
         }
@@ -205,6 +205,7 @@ export class GameEngine {
   // 怪物在一畫面四個邊緣以外隨機生成
   private spawnEnemy() {
     const size = 20;
+    const enemyMaxHp = 20;
     let x, y;
     if (Math.random() < 0.5) {
       x = Math.random() < 0.5 ? -size : this.canvas.width + size;
@@ -220,7 +221,8 @@ export class GameEngine {
       size,
       color: '#94a3b8', // 暗色系灰色怪物方形
       speed: 1.5 + Math.random(), // 些微的隨機移速
-      hp: 20
+      hp: enemyMaxHp,
+      maxHp: enemyMaxHp,
     });
   }
 
@@ -265,13 +267,37 @@ export class GameEngine {
     this.ctx.fillStyle = 'rgba(10, 10, 10, 0.4)'; 
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // 2. 畫出每一個怪物
+    // 2. 畫出每一個怪物 + 血條
     for (const enemy of this.enemies) {
+      // 怪物方形本體
       this.ctx.fillStyle = enemy.color;
       this.ctx.shadowBlur = 10;
       this.ctx.shadowColor = enemy.color;
       this.ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
       this.ctx.shadowBlur = 0;
+
+      // 怪物血條 — 只在受傷後才顯示
+      if (enemy.hp < enemy.maxHp) {
+        const barWidth = enemy.size + 6;
+        const barHeight = 3;
+        const barX = enemy.x - 3;
+        const barY = enemy.y - 8;
+        const hpRatio = Math.max(0, enemy.hp / enemy.maxHp);
+
+        // 血條底色（軌道）
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        this.ctx.fillRect(barX, barY, barWidth, barHeight);
+
+        // 血條前景 — 根據血量百分比漸變色 (紅 → 橘)
+        const r = 255;
+        const g = Math.round(47 + (60 * (1 - hpRatio))); // 紅腐 → 橘
+        const b = Math.round(87 * hpRatio + 53 * (1 - hpRatio));
+        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        this.ctx.shadowBlur = 6;
+        this.ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.7)`;
+        this.ctx.fillRect(barX, barY, barWidth * hpRatio, barHeight);
+        this.ctx.shadowBlur = 0;
+      }
     }
 
     // 3. 畫出每一發子彈
