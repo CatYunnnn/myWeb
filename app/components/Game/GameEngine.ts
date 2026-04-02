@@ -127,7 +127,7 @@ export class GameEngine {
 
     // 2. 控制怪物生成頻率 (預設每秒 1 隻)
     this.enemySpawnTimer += deltaTime;
-    if (this.enemySpawnTimer > 1000) {
+    if (this.enemySpawnTimer > 2000) {
       this.spawnEnemy();
       this.enemySpawnTimer = 0;
     }
@@ -251,7 +251,7 @@ export class GameEngine {
     const size = 20;
 
     // 怪物的血量隨等級難度成長：基礎 20 + 每等級額外 3 點血
-    const enemyMaxHp = 20 + level * 3;
+    const enemyMaxHp = 20 + level * 1.5;
     // 怪物速度隨等級提昇，防止火力輾壓
     const baseSpeed = 1.3 + Math.random() * 0.5 + level * 0.05;
 
