@@ -182,6 +182,12 @@ interface GameState {
   expToNext: number;
   weaponStats: WeaponStats;
   pendingUpgrades: UpgradeOption[];
+  // Boss 系統
+  gameTime: number;         // 遊戲經過秒數，引擎每幀叴新
+  bossWarning: boolean;     // Boss 出現前 10 秒的警告狀態
+  bossHp: number | null;    // 目前場上 Boss 的血量，null 表示未存活
+  bossMaxHp: number | null; // Boss 最大血量
+  bossCount: number;        // Boss 已出現的次數（用于跟蹤難度成長）
 
   // Actions
   togglePause: () => void;
@@ -195,6 +201,12 @@ interface GameState {
   selectUpgrade: (id: string) => void;
   gameOver: () => void;
   resetGame: () => void;
+  // Boss Actions
+  tickGameTime: (delta: number) => void;
+  setBossWarning: (val: boolean) => void;
+  spawnBossState: (maxHp: number) => void;  // 引擎通知 UI Boss 已生成
+  damageBoss: (amount: number) => void;     // 出补溗自專屬血條
+  clearBossState: () => void;               // Boss 死亡清除
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -208,6 +220,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   expToNext: 50,
   weaponStats: { ...INITIAL_WEAPON_STATS },
   pendingUpgrades: [],
+  // Boss 初始化
+  gameTime: 0,
+  bossWarning: false,
+  bossHp: null,
+  bossMaxHp: null,
+  bossCount: 0,
 
   togglePause: () => set((state) => ({ isPaused: !state.isPaused })),
   setPause: (paused) => set({ isPaused: paused }),
@@ -300,5 +318,24 @@ export const useGameStore = create<GameState>((set, get) => ({
       expToNext: 50,
       weaponStats: { ...INITIAL_WEAPON_STATS },
       pendingUpgrades: [],
+      // Boss 重置
+      gameTime: 0,
+      bossWarning: false,
+      bossHp: null,
+      bossMaxHp: null,
+      bossCount: 0,
     }),
+  // Boss Actions
+  tickGameTime: (delta: number) => set((state) => ({ gameTime: state.gameTime + delta })),
+  setBossWarning: (val: boolean) => set({ bossWarning: val }),
+  spawnBossState: (maxHp: number) => set((state) => ({
+    bossHp: maxHp,
+    bossMaxHp: maxHp,
+    bossWarning: false,
+    bossCount: state.bossCount + 1,
+  })),
+  damageBoss: (amount: number) => set((state) => ({
+    bossHp: state.bossHp !== null ? Math.max(0, state.bossHp - amount) : null,
+  })),
+  clearBossState: () => set({ bossHp: null, bossMaxHp: null }),
 }));

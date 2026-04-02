@@ -21,14 +21,37 @@ export function GameUI({ onExit }: GameUIProps) {
   const isUpgrading = useGameStore(state => state.isUpgrading);
   const togglePause = useGameStore(state => state.togglePause);
   const resetGame = useGameStore(state => state.resetGame);
+  // Boss 狀態
+  const bossWarning = useGameStore(state => state.bossWarning);
+  const bossHp = useGameStore(state => state.bossHp);
+  const bossMaxHp = useGameStore(state => state.bossMaxHp);
+  const gameTime = useGameStore(state => state.gameTime);
 
   const healthPercent = Math.max(0, health);
   const expPercent = expToNext > 0 ? (exp / expToNext) * 100 : 0;
   const isLowHealth = health <= 30;
 
+  // Boss 倒數計算：從 120 秒週期內的剩餘時間
+  const bossCountdown = Math.max(0, Math.ceil((120_000 - (gameTime % 120_000)) / 1000));
+
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 md:p-6">
-      {/* 掃描線覆蓋層 */}
+      {/* Boss 警告 Banner */}
+      {bossWarning && (
+        <div className="absolute inset-x-0 top-1/3 flex justify-center z-40 pointer-events-none animate-pulse">
+          <div className="border border-[#c026d3]/50 bg-[rgba(0,0,0,0.85)] backdrop-blur-sm px-8 py-4 text-center shadow-[0_0_40px_rgba(192,38,211,0.3)]">
+            <p className="font-rajdhani text-xs tracking-[0.3em] text-[#c026d3]/70 uppercase mb-1">★ WARNING ★</p>
+            <p className="font-orbitron text-2xl font-bold text-[#c026d3] tracking-[0.2em] drop-shadow-[0_0_15px_rgba(192,38,211,0.8)]">
+              BOSS INCOMING
+            </p>
+            <p className="font-rajdhani text-sm text-[#c026d3]/60 mt-1 tracking-widest">
+              PREPARE FOR BATTLE
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 暫停覆蓋層 */}
       <div className="absolute inset-0 hud-scanlines z-[1]" />
 
       {/* ═══════════════════════════════════
@@ -109,6 +132,15 @@ export function GameUI({ onExit }: GameUIProps) {
 
         {/* ── 右上角：控制按鈕 ── */}
         <div className="flex gap-3 animate-hud-slide-right">
+          {/* Boss 倒數提示 */}
+          {bossHp === null && (
+            <div className={`hud-panel px-3 py-1 flex items-center gap-2 border-[#c026d3]/30 bg-[#c026d3]/5`}>
+              <Crown size={13} className="text-[#c026d3]" />
+              <span className="font-orbitron text-xs font-bold text-[#c026d3]">
+                {bossCountdown}s
+              </span>
+            </div>
+          )}
           <button 
             onClick={togglePause}
             className="relative overflow-hidden w-11 h-11 flex items-center justify-center text-white transition-all hover:scale-110 bg-[rgba(8,12,24,0.88)] border border-neon-cyan/20 hud-cut-sm"
@@ -131,6 +163,35 @@ export function GameUI({ onExit }: GameUIProps) {
           </button>
         </div>
       </div>
+
+      {/* Boss 奇香血條—場上有 Boss 時顯示 */}
+      {bossHp !== null && bossMaxHp !== null && (
+        <div className="absolute top-[88px] left-1/2 -translate-x-1/2 w-full max-w-lg px-4 z-20 animate-hud-fade-in">
+          <div className="hud-panel px-4 py-2.5 border-[#c026d3]/40 bg-[#c026d3]/5">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <Crown size={13} className="text-[#c026d3]" />
+                <span className="font-orbitron text-xs font-bold text-[#c026d3] tracking-widest">
+                  BOSS
+                </span>
+              </div>
+              <span className="font-orbitron text-xs text-[#c026d3]/70">
+                {Math.ceil(bossHp)} / {bossMaxHp}
+              </span>
+            </div>
+            <div className="w-full h-3 bg-black/50 relative overflow-hidden rounded-sm">
+              <div
+                className="h-full transition-all duration-200 ease-out"
+                style={{
+                  width: `${(bossHp / bossMaxHp) * 100}%`,
+                  background: 'linear-gradient(90deg, #7e22ce, #c026d3, #e879f9)',
+                  boxShadow: '0 0 12px rgba(192,38,211,0.7), inset 0 0 6px rgba(255,255,255,0.1)',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════
           暫停覆蓋層
