@@ -1,7 +1,7 @@
 "use client";
 
 // 負責所有的覆蓋層介面 (Overlay UI)，例如分數、血條、暫停選單
-import { Pause, Play, RotateCcw, Skull, X, Zap, Shield, Star } from "lucide-react";
+import { Pause, Play, RotateCcw, Skull, X, Zap, Shield, Star, Crown, Target, Zap as ZapFast } from "lucide-react";
 import { useGameStore } from "../../store/useGameStore";
 
 interface GameUIProps {
@@ -16,6 +16,9 @@ export function GameUI({ onExit }: GameUIProps) {
   const level = useGameStore(state => state.level);
   const exp = useGameStore(state => state.exp);
   const expToNext = useGameStore(state => state.expToNext);
+  const pendingUpgrades = useGameStore(state => state.pendingUpgrades);
+  const selectUpgrade = useGameStore(state => state.selectUpgrade);
+  const isUpgrading = useGameStore(state => state.isUpgrading);
   const togglePause = useGameStore(state => state.togglePause);
   const resetGame = useGameStore(state => state.resetGame);
 
@@ -232,6 +235,76 @@ export function GameUI({ onExit }: GameUIProps) {
               >
                 返回主選單
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════
+          升級覆蓋層 (Level Up Upgrade Selection)
+      ═══════════════════════════════════ */}
+      {isUpgrading && pendingUpgrades.length > 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-auto z-[60] bg-[rgba(0,10,20,0.85)] backdrop-blur-md animate-hud-fade-in">
+          {/* 背景光環 */}
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(0,240,255,0.05)_0%,transparent_70%)]" />
+
+          <div className="text-center w-full max-w-4xl px-4">
+            <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-2 uppercase tracking-[0.4em] text-neon-cyan drop-shadow-[0_0_20px_rgba(0,240,255,0.6)] animate-pulse">
+              LEVEL UP
+            </h2>
+            <p className="font-rajdhani text-lg md:text-xl mb-12 text-neon-cyan/50 tracking-widest uppercase">
+              Select your upgrade
+            </p>
+
+            <div className="flex flex-col md:flex-row gap-6 justify-center items-stretch">
+              {pendingUpgrades.map((upgrade, index) => {
+                // 定義稀有度對應的樣式
+                const isEpic = upgrade.rarity === 'epic';
+                const isRare = upgrade.rarity === 'rare';
+                
+                const borderColor = isEpic ? 'border-[#a855f7]/50' : isRare ? 'border-[#3b82f6]/50' : 'border-white/20';
+                const bgColor = isEpic ? 'bg-[#a855f7]/10' : isRare ? 'bg-[#3b82f6]/10' : 'bg-white/5';
+                const shadowGlow = isEpic ? 'shadow-[0_0_30px_rgba(168,85,247,0.3)]' : isRare ? 'shadow-[0_0_20px_rgba(59,130,246,0.2)]' : '';
+                const textColor = isEpic ? 'text-[#e9d5ff]' : isRare ? 'text-[#bfdbfe]' : 'text-slate-200';
+                const labelColor = isEpic ? 'text-[#a855f7]' : isRare ? 'text-[#3b82f6]' : 'text-slate-400';
+                const labelText = isEpic ? 'EPIC' : isRare ? 'RARE' : 'COMMON';
+
+                return (
+                  <button
+                    key={upgrade.id}
+                    onClick={() => selectUpgrade(upgrade.id)}
+                    className={`flex-1 relative group hud-panel hud-cut-md transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] p-6 md:p-8 text-left ${borderColor} ${bgColor} ${shadowGlow}`}
+                    style={{ animationDelay: `${index * 150}ms` }}
+                  >
+                    {/* Hover光澤 */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+                    
+                    {/* 稀有度標籤 */}
+                    <div className={`font-rajdhani text-xs tracking-[0.3em] font-bold mb-4 ${labelColor}`}>
+                      {labelText}
+                    </div>
+
+                    {/* 圖示 */}
+                    <div className="text-4xl mb-4 grayscale-[0.2] transition-all group-hover:grayscale-0 group-hover:scale-110 origin-left">
+                      {upgrade.icon}
+                    </div>
+
+                    {/* 標題與描述 */}
+                    <h3 className={`font-orbitron text-xl md:text-2xl font-bold mb-3 tracking-wide ${textColor}`}>
+                      {upgrade.name}
+                    </h3>
+                    
+                    <p className="font-rajdhani text-sm md:text-base text-slate-300/80 leading-relaxed border-t border-white/10 pt-4 mt-auto">
+                      {upgrade.description}
+                    </p>
+                    
+                    {/* EPic 特效 */}
+                    {isEpic && (
+                      <div className="absolute inset-0 border border-[#a855f7]/30 hud-cut-md animate-pulse pointer-events-none" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ export function GameCanvas() {
   const [isReady, setIsReady] = useState(false);
   const isPaused = useGameStore(state => state.isPaused);
   const isGameOver = useGameStore(state => state.isGameOver);
+  const isUpgrading = useGameStore(state => state.isUpgrading);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -34,22 +35,24 @@ export function GameCanvas() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 監聽 React 傳來的暫停 / 遊戲結束狀態來控制底層引擎
+  // 監聽 React 傳來的狀態來控制底層引擎
   useEffect(() => {
     if (!engineRef.current || !isReady) return;
-    if (isPaused || isGameOver) {
+    if (isPaused || isGameOver || isUpgrading) {
       engineRef.current.stop();
     } else {
       // 如果從 Game Over 回來，先重置引擎
-      engineRef.current.reset();
+      if (useGameStore.getState().score === 0 && useGameStore.getState().health === 100) {
+         engineRef.current.reset();
+      }
       engineRef.current.start();
     }
-  }, [isPaused, isGameOver, isReady]);
+  }, [isPaused, isGameOver, isUpgrading, isReady]);
 
   return (
     <canvas 
       ref={canvasRef} 
-      className="block w-full h-full bg-slate-950 cursor-crosshair touch-none"
+      className="block w-full h-full bg-[rgba(10,10,10,1)] cursor-crosshair touch-none"
     />
   );
 }
