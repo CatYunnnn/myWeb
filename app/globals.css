@@ -40,6 +40,25 @@
   --color-card: var(--card);
   --color-border: var(--border);
   --color-muted: var(--muted);
+
+  /* 遊戲 HUD 專用色 */
+  --color-neon-cyan: #00f0ff;
+  --color-neon-red: #ff2d55;
+  --color-neon-yellow: #f0e130;
+  --color-neon-orange: #ff6b35;
+
+  /* 字體 */
+  --font-orbitron: "Orbitron", monospace;
+  --font-rajdhani: "Rajdhani", sans-serif;
+
+  /* 動畫 */
+  --animate-low-hp-pulse: low-hp-pulse 0.8s ease-in-out infinite;
+  --animate-score-glow: score-glow 3s ease-in-out infinite;
+  --animate-scale-pulse: scale-pulse 2s ease-in-out infinite;
+  --animate-glitch: glitch 3s infinite;
+  --animate-hud-slide-left: hud-slide-left 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-hud-slide-right: hud-slide-right 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-hud-fade-in: hud-fade-in 0.6s ease-out;
 }
 
 body {
@@ -47,3 +66,96 @@ body {
   color: var(--fg);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+
+/* ══════════════════════════════════
+   遊戲 HUD Keyframes
+══════════════════════════════════ */
+@keyframes low-hp-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes score-glow {
+  0%, 100% { text-shadow: 0 0 8px rgba(240, 225, 48, 0.4); }
+  50% { text-shadow: 0 0 20px rgba(240, 225, 48, 0.8), 0 0 40px rgba(240, 225, 48, 0.3); }
+}
+@keyframes scale-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes glitch {
+  0%, 90%, 100% { transform: translate(0); }
+  92% { transform: translate(-3px, 1px); filter: hue-rotate(90deg); }
+  94% { transform: translate(3px, -1px); filter: hue-rotate(-90deg); }
+  96% { transform: translate(-1px, -2px); }
+  98% { transform: translate(2px, 2px); filter: hue-rotate(45deg); }
+}
+@keyframes hud-slide-left {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes hud-slide-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes hud-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ══════════════════════════════════
+   遊戲 HUD 自訂工具類別
+══════════════════════════════════ */
+@utility hud-panel {
+  background: rgba(8, 12, 24, 0.88);
+  border: 1px solid rgba(0, 240, 255, 0.12);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  backdrop-filter: blur(16px);
+  position: relative;
+}
+
+@utility hud-panel-glow {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.06) 0%, transparent 40%);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+@utility hud-cut-sm {
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+@utility hud-cut-md {
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+@utility hp-bar-track {
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  background: rgba(255, 45, 85, 0.12);
+}
+
+@utility hp-bar-fill {
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+
+@utility hud-hex {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+@utility hud-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 240, 255, 0.015) 2px,
+    rgba(0, 240, 255, 0.015) 4px
+  );
+  pointer-events: none;
+}
+
+@utility btn-neon-shine {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+

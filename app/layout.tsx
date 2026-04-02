@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Orbitron, Rajdhani } from "next/font/google";
 import "./globals.css";
 //////// components
 import { Sidebar } from "./components/Sidebar/Sidebar";
@@ -15,6 +16,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const rajdhani = Rajdhani({
+  variable: "--font-rajdhani",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "My Website",
   description: "My personal website built with Next.js and Tailwind CSS.",
@@ -28,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground transition-colors duration-500`}
+        className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} ${rajdhani.variable} antialiased bg-background text-foreground transition-colors duration-500`}
       >
         <ThemeProvider
           attribute="class"
