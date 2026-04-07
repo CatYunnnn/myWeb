@@ -23,7 +23,17 @@ interface Enemy {
   hp: number;
   maxHp: number;
   type: 'normal' | 'elite' | 'boss';
+  xpValue: number; // 預先計算好的經驗值
   fireTimer?: number;
+}
+
+interface FloatingText {
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  opacity: number;
+  life: number; // 剩餘顯示時間 (ms)
 }
 
 interface Projectile {
@@ -59,6 +69,7 @@ export class GameEngine {
   private enemies: Enemy[] = [];
   private projectiles: Projectile[] = [];
   private enemyProjectiles: Projectile[] = [];
+  private floatingTexts: FloatingText[] = [];
 
   // 遊戲計時器
   private enemySpawnTimer: number = 0;
@@ -123,6 +134,7 @@ export class GameEngine {
     this.enemies = [];
     this.projectiles = [];
     this.enemyProjectiles = [];
+    this.floatingTexts = [];
     this.enemySpawnTimer = 0;
     this.fireTimer = 0;
     this.bossTimer = 0;
@@ -215,6 +227,15 @@ export class GameEngine {
       }
     }
 
+    // 5C. 更新飄動文字
+    for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+      const ft = this.floatingTexts[i];
+      ft.life -= deltaTime;
+      ft.y -= 0.5 * (deltaTime / 16); // 緩行向上
+      ft.opacity = Math.max(0, ft.life / 1000); // 隨壽命淡出
+      if (ft.life <= 0) this.floatingTexts.splice(i, 1);
+    }
+
     // 6. 更新所有怪物
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const enemy = this.enemies[i];
@@ -275,20 +296,30 @@ export class GameEngine {
             this.projectiles.splice(j, 1);
           }
 
-          if (enemy.hp <= 0) {
-            this.enemies.splice(i, 1);
+            if (enemy.hp <= 0) {
+              const defeatedEnemy = this.enemies.splice(i, 1)[0];
 
-            if (enemy.type === 'boss') {
-              useGameStore.getState().clearBossState();
-              useGameStore.getState().addScore(500);
-              useGameStore.getState().addExp(200);
-            } else {
-              const multiplier = enemy.type === 'elite' ? 2 : 1;
-              useGameStore.getState().addScore(10 * multiplier);
-              useGameStore.getState().addExp(15 * multiplier);
+              // 生成 XP 漂浮文字
+              this.floatingTexts.push({
+                x: defeatedEnemy.x + defeatedEnemy.size / 2,
+                y: defeatedEnemy.y,
+                text: `+${defeatedEnemy.xpValue} XP`,
+                color: "#22d3ee", // 淺藍色 (與 store 同色系)
+                opacity: 1,
+                life: 1000,
+              });
+
+              if (enemy.type === 'boss') {
+                useGameStore.getState().clearBossState();
+                useGameStore.getState().addScore(500);
+                useGameStore.getState().addExp(defeatedEnemy.xpValue);
+              } else {
+                const multiplier = enemy.type === 'elite' ? 2 : 1;
+                useGameStore.getState().addScore(10 * multiplier);
+                useGameStore.getState().addExp(defeatedEnemy.xpValue);
+              }
+              break;
             }
-            break;
-          }
         }
       }
     }
@@ -320,6 +351,12 @@ export class GameEngine {
     return Math.sqrt(distX * distX + distY * distY) <= cr;
   }
 
+  // 輔助隨機範圍 (±20%)
+  private applyVariance(base: number) {
+    const factor = 0.8 + Math.random() * 0.4; // 0.8 ~ 1.2
+    return Math.round(base * factor);
+  }
+
   // 生成普通/菁英怪
   private spawnEnemy() {
     const level = useGameStore.getState().level;
@@ -344,8 +381,10 @@ export class GameEngine {
       x, y, size,
       color: isElite ? "#f59e0b" : "#94a3b8",
       speed: baseSpeed,
-      hp: enemyMaxHp, maxHp: enemyMaxHp,
+      hp: this.applyVariance(enemyMaxHp), 
+      maxHp: enemyMaxHp,
       type: isElite ? 'elite' : 'normal',
+      xpValue: this.applyVariance(isElite ? 30 : 15),
       fireTimer: isElite ? 0 : undefined,
     });
   }
@@ -356,6 +395,7 @@ export class GameEngine {
     const count = store.bossCount;                     // 已出現次數
     const bossMaxHp = BOSS_BASE_HP + count * BOSS_HP_SCALE;
     const bossSpeed = BOSS_BASE_SPEED + count * BOSS_SPEED_SCALE;
+    const bossFinalHp = this.applyVariance(bossMaxHp);
 
     this.enemies.push({
       x: this.canvas.width / 2 - BOSS_SIZE / 2,
@@ -363,14 +403,15 @@ export class GameEngine {
       size: BOSS_SIZE,
       color: "#c026d3",      // 深紫色
       speed: bossSpeed,
-      hp: bossMaxHp,
-      maxHp: bossMaxHp,
+      hp: bossFinalHp,
+      maxHp: bossFinalHp,
       type: 'boss',
+      xpValue: this.applyVariance(200),
       fireTimer: BOSS_FIRE_INTERVAL, // 立即開始射擊計時
     });
 
     // 通知 Store（供 UI 渲染 Boss 血條）
-    store.spawnBossState(bossMaxHp);
+    store.spawnBossState(bossFinalHp);
   }
 
   // 玩家子彈（扇形多發）
@@ -514,6 +555,17 @@ export class GameEngine {
     this.ctx.fill();
     this.ctx.closePath();
     this.ctx.shadowBlur = 0;
+
+    // 飄動文字渲染
+    this.ctx.save();
+    this.ctx.font = 'bold 16px Orbitron, Rajdhani, sans-serif';
+    this.ctx.textAlign = 'center';
+    for (const ft of this.floatingTexts) {
+      this.ctx.fillStyle = ft.color;
+      this.ctx.globalAlpha = ft.opacity;
+      this.ctx.fillText(ft.text, ft.x, ft.y);
+    }
+    this.ctx.restore();
   }
 
   public resize(width: number, height: number) {
