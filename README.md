@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌌 Neon Pulse | CatYun's Portfolio
 
-## Getting Started
+A high-performance, aesthetically-driven portfolio built with **Next.js 16** and **Tailwind CSS 4**. This project features a "Soft Editorial" light mode, a "Neon Pulse" dark mode, and an integrated **Roguelike Survival Game** built directly into the playground.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **🌓 Dynamic Theming**: Seamless transition between light and dark modes with dedicated color palettes ([`next-themes`](https://github.com/pacocoursey/next-themes)).
+- **🎮 Interactive Playground**: A built-in Roguelike survival mini-game built with Zustand for high-performance state management.
+- **⚡ Peak Performance**: Built with the latest Next.js 16 (App Router) and React 19 for maximum speed and SEO optimization.
+- **🎨 Premium UI**: Modern typography, smooth gradients, and micro-animations for an elevated user experience.
+- **🤖 AI-Optimized Workflow**: Developed using advanced AI-assisted coding and design workflows (Stitch & Antigravity).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Core**: [Next.js 16](https://nextjs.org), [React 19](https://react.dev)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com), [Lucide React](https://lucide.dev)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Theming**: [Next Themes](https://github.com/pacocoursey/next-themes)
 
-## Learn More
+## 🚀 Getting Started
 
-To learn more about Next.js, take a look at the following resources:
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd my-web
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+4. **Build for production**:
+   ```bash
+   npm run build
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📂 Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/`: Next.js App Router and page components.
+- `app/game/`: The Roguelike survival game playground.
+- `app/components/`: Reusable UI components.
+- `app/store/`: Zustand state stores for the game and UI.
+- `public/`: Static assets and images.
+
+---
+
+*“In my perception, apples are black.”* —— **CatYun**
